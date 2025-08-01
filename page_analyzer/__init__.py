@@ -1,5 +1,5 @@
-from app import *
+from .app import app
 
-_all__ = (
+__all__ = (
     'app',
     )
