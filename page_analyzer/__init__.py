@@ -1,3 +1,5 @@
-__all__ = (
+from app import *
+
+_all__ = (
     'app',
     )
