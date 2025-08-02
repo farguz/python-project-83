@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>header-footer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+</head>
+<body>
+    <div class="card text-left">
+        <div class="card-header">
+            <a href="{{ url_for('index')}}">Анализатор страниц</a>
+            <a href="{{ url_for('urls') }}">Сайты</a>
+        </div>
+    </div>
+    {% block main %}
+    <div></div>
+    {% endblock %}
+    <footer class="border-top py-3 mt-5 flex-shrink-0">
+        <div class="container-lg">
+            <div class="text-center">
+                <a href="https://github.com/farguz" target="_blank">farguz</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
