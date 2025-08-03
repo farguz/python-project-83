@@ -10,3 +10,4 @@ coverage.*
 
 # Virtual environments
 .venv
+.env
