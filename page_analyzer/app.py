@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from flask import (
     Flask,
     flash,
-    get_flashed_messages,
     redirect,
     render_template,
     request,
@@ -26,32 +25,30 @@ def connect_database():
 
 @app.route('/', methods=['GET'])
 def index():
-    url = []
-    messages = get_flashed_messages(with_categories=True)
     return render_template('index.html',
-                           url=url,
-                           messages=messages)
+                           url = '')
 
 
 @app.route('/', methods=['POST'])
 def post_url():
     data = request.form.to_dict()
-    errors = validators.url(data['url'])
+    url = data['url']
+    correct_url = validators.url(url)
+    correct_length = True if len(url) < 255 else False
+    # correct_length = validators.length(url, 0, 255) ПОЧЕМУ НЕ РАБОТАЕТ???
 
-    if not errors:
+    if correct_url is True and correct_length:
         conn = connect_database()
         sql = "INSERT INTO urls (name) VALUES (%s);"
 
         with conn.cursor() as curs:
             curs.execute(sql, (data['url'], ))
-
         flash("Страница успешно добавлена", "success")
         return redirect(url_for("index"))
     
     flash("Некорректный URL", "error")
     return render_template('index.html',
-                           url=data,
-                           messages=[]), 422
+                           url = url), 422
 
 
 """@app.route('/urls', methods = ['GET'])
