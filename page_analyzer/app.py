@@ -1,8 +1,8 @@
 import os
-
+from urllib.parse import urlparse
+from datetime import datetime
 import psycopg2
 import validators
-import urllib.parse
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -23,6 +23,7 @@ def connect_database():
     conn = psycopg2.connect(DATABASE_URL)
     return conn
 
+
 def validate_url(url: str) -> bool:
     correct_url = validators.url(url)
     correct_length = True if len(url) < 255 else False
@@ -31,12 +32,14 @@ def validate_url(url: str) -> bool:
         return True
     return False
 
-def normalize_url(url: str) -> str:
-    normalized_url = url.lower().strip(' /')
-    # использовать urlparse???
-    return normalized_url
 
-def check_is_not_double(url: str) -> bool|int:
+def normalize_url(url: str) -> str:
+    lowercase_url = url.lower()
+    normalized_url = urlparse(lowercase_url)
+    return f'{normalized_url.scheme}://{normalized_url.netloc}'
+
+
+def check_is_not_double(url: str) -> bool | int:
     conn = connect_database()
     sql = "SELECT * FROM urls WHERE name = (%s);"
     with conn.cursor() as curs:
@@ -48,8 +51,10 @@ def check_is_not_double(url: str) -> bool|int:
             return True
         return id[0]
 
+
 def save_to_db(website):
     pass
+
 
 @app.route('/', methods=['GET'])
 def index():
@@ -60,17 +65,18 @@ def index():
 @app.route('/', methods=['POST'])
 def post_url():
     data = request.form.to_dict()
-    url = normalize_url(data['url'])
-    correctness = validate_url(url)
-    doubleness = check_is_not_double(url)
+    url = data['url']
+    normalized_url = normalize_url(url)
+    correctness = validate_url(normalized_url)
+    doubleness = check_is_not_double(normalized_url)
     if doubleness is not True:
         flash("Страница уже существует", "info")
         return redirect(url_for("get_url_info", id=doubleness))
-    if correctness and doubleness:
+    if correctness:
         conn = connect_database()
-        sql = "INSERT INTO urls (name) VALUES (%s) RETURNING id;"
+        sql = "INSERT INTO urls (name, created_at) VALUES (%s, %s) RETURNING id;"
         with conn.cursor() as curs:
-            curs.execute(sql, (url, ))
+            curs.execute(sql, (url, datetime.now(), ))
             conn.commit()
             id = curs.fetchone()[0]
             conn.close()
@@ -90,35 +96,33 @@ def get_url_info(id):
         curs.execute(sql, (id, ))
         conn.commit()
         data = curs.fetchall()
-
-        # id, name, created_at = result[0], result[1], result[2]
+        conn.close()
     return render_template('url_id.html',
                            data=data)
 
 
-"""@app.route('/urls', methods = ['GET'])
+@app.route('/urls', methods=['GET'])
 def urls_list():
-    sql = 'SELECT id, name FROM urls;'
+    sql = 'SELECT id, name FROM urls ORDER BY id DESC;'
     conn = connect_database()
     with conn.cursor() as curs:
         curs.execute(sql)
         data = curs.fetchall()
+        conn.commit()
+        conn.close()
     return render_template('urls.html',
-                           urls = data)
+                           urls=data)
 
 
-
-
-
-def create_table(conn):
+def create_table():
     sql = '''
     CREATE TABLE urls (
-        id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-        name varchar(255) NOT NULL,
-        created_at TIMESTAMP
+        id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+        name VARCHAR(255) NOT NULL,
+        created_at NOT NULL
     );'''
+    conn = connect_database()
     with conn.cursor() as curs:
-        curs.execute(sql)"""
-
-
-
+        curs.execute(sql)
+        conn.commit()
+        conn.close()
