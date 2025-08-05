@@ -7,7 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
 </head>
 <body class="min-vh-100 d-flex flex-column">
-    </main>
     {% extends "header_footer_template.html" %}
     {% block main %}
     
@@ -16,8 +15,10 @@
             {% for category, message in messages %}
                 {% if category == "error" %}
                     <div class="alert alert-danger" role="alert">{{ message }}</div>
-                {% else %}
+                {% elif category == "success" %}
                     <div class="alert alert-success" role="alert">{{ message }}</div>
+                {% else %}
+                    <div class="alert alert-info" role="alert">{{ message }}</div>
                 {% endif %}
             {% endfor %}
         {% endif %}
@@ -38,6 +39,7 @@
             </div>
         </div>
     </main>
+    
     {% endblock %}
 </body>
 </html>

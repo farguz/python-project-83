@@ -6,6 +6,34 @@
     <title>Page Analyzer</title>
 </head>
 <body>
-    <p>welcome to url.html, temp html-page</p>
+    {% extends "header_footer_template.html" %}
+    {% block main %}
+    <main class="flex-grow-1">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success" role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    
+        <h1>Сайт: {{ name }}</h1>
+        <div>{{ data }}</div>
+        <table class="table table-sm align-middle">
+            <tr>
+                <td>ID</td>
+                <td>{{ data.id }}</td>
+            </tr>
+            <tr>
+                <td>Имя</td>
+                <td>{{ data[0] }}</td>
+            </tr>
+            <tr>
+                <td>Дата создания</td>
+                <td>{{ created_at }}</td>
+            </tr>
+        </table>
+    </main>
+    {% endblock %}
 </body>
 </html>
