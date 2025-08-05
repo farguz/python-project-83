@@ -7,6 +7,7 @@
 </head>
 <body>
     {% extends "header_footer_template.html" %}
+
     {% block main %}
     <main class="flex-grow-1">
         <div class="container-lg mt-3">
@@ -19,6 +20,7 @@
                         <td>Последняя проверка</td>
                         <td>Код ответа</td>
                     </tr>
+
                     {% for url in urls %}
                     <tr>
                         <td>{{ url[0] }}</td>
@@ -27,10 +29,12 @@
                         <td>???</td>
                     </tr>
                     {% endfor %}
+
                 </table>
             </div>
         </div>
     </main>
     {% endblock %}
+
 </body>
 </html>

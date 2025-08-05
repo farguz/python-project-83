@@ -36,6 +36,37 @@
                 </table>
             </div>
         </div>
+
+        <div class="container-lg mt-3">
+            <h2 class="mt-5 mb-3">Проверки</h2>
+            <form action="{{ url_for('post_url_check', id = data[0][0]) }}" method="post">
+                <input type="submit" class="btn btn-primary" value="Запустить проверку">
+            </form>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover text-nowrap" data-test="checks">
+                    <tr class="fw-bolder">
+                        <td>id</td>                        
+                        <td>status_code</td>
+                        <td>h1</td>
+                        <td>title</td>
+                        <td>description</td>
+                        <td>Дата создания</td>
+                    </tr>
+
+                    {% for url in urls %}
+                    <tr>
+                        <td>1</td>
+                        <td>2</td>
+                        <td>3</td>
+                        <td>4</td>
+                        <td>5</td>
+                        <td>6</td>
+                    </tr>
+                    {% endfor %}
+
+                </table>
+            </div>
+        </div>
     </main>
     {% endblock %}
 </body>
