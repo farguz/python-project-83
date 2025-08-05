@@ -6,20 +6,22 @@
     <title>Page Analyzer</title>
 </head>
 <body>
-    {% extends "header_footer_template.html" %}
-    {% block main %}
     <main class="flex-grow-1">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-info" role="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% if category == "error" %}
+                    <div class="alert alert-danger" role="alert">{{ message }}</div>
+                {% elif category == "success" %}
+                    <div class="alert alert-success" role="alert">{{ message }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
         <div class="container-lg mt-3">
             <h2 class="mt-5 mb-3">Проверки</h2>
-            <form action="{{ url_for('post_url_check', id = data[0][0]) }}" method="post">
+            <form action="{{ url_for('post_url_check', id = url_id) }}" method="post">
                 <input type="submit" class="btn btn-primary" value="Запустить проверку">
             </form>
             <div class="table-responsive">
@@ -33,9 +35,9 @@
                         <td>Дата создания</td>
                     </tr>
 
-                    {% for url in urls %}
+                    {% for check in checks %}
                     <tr>
-                        <td>1</td>
+                        <td>{{ id }}</td>
                         <td>2</td>
                         <td>3</td>
                         <td>4</td>
@@ -48,6 +50,5 @@
             </div>
         </div>
     </main>
-    {% endblock %}
 </body>
 </html>

@@ -104,17 +104,22 @@ def get_url_info(id):
                            data=data)
 
 
-@app.route('/urls/<int:id>/checks', methods=['POST'])
+@app.route('/urls/<int:id>/checks', methods=['POST', 'GET'])
 def post_url_check(id):
-    sql = 'INSERT INTO url_checks (url_id, created_at) VALUES (%s, %s);'
+    sql_insert = 'INSERT INTO url_checks (url_id, created_at) VALUES (%s, %s) RETURNING (url_id, created_at);'
+    #sql_select = 'SELECT url_id, created_at FROM url_checks WHERE url_id = (%s)'
     conn = connect_database()
     with conn.cursor() as curs:
-        curs.execute(sql, (id, datetime.now(), ))
+        curs.execute(sql_insert, (id, datetime.now(), ))
         conn.commit()
-        # data = curs.fetchall()
+        #curs.execute(sql_select, (id, ))
+        checks = curs.fetchall()
+        #conn.commit()
         conn.close()
         flash("Страница успешно проверена", "success")
-    return render_template('url_checks.html')
+    return render_template('url_checks.html',
+                           checks=checks,
+                           url_id = id)
 
 
 @app.route('/urls', methods=['GET'])
@@ -135,7 +140,7 @@ def create_table():
     CREATE TABLE urls (
         id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
         name VARCHAR(255) NOT NULL,
-        created_at NOT NULL
+        created_at TIMESTAMP NOT NULL
     );'''
 
     sql_checks = '''
