@@ -1,6 +1,7 @@
 import os
-from urllib.parse import urlparse
 from datetime import datetime
+from urllib.parse import urlparse
+
 import psycopg2
 import validators
 from dotenv import load_dotenv
@@ -74,7 +75,8 @@ def post_url():
         return redirect(url_for("get_url_info", id=doubleness))
     if correctness:
         conn = connect_database()
-        sql = "INSERT INTO urls (name, created_at) VALUES (%s, %s) RETURNING id;"
+        sql = """INSERT INTO urls (name, created_at) 
+                VALUES (%s, %s) RETURNING id;"""
         with conn.cursor() as curs:
             curs.execute(sql, (url, datetime.now(), ))
             conn.commit()

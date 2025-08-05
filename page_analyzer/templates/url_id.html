@@ -12,27 +12,30 @@
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 {% for message in messages %}
-                    <div class="alert alert-success" role="alert">{{ message }}</div>
+                    <div class="alert alert-info" role="alert">{{ message }}</div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
-    
-        <h1>Сайт: {{ name }}</h1>
-        <div>{{ data }}</div>
-        <table class="table table-sm align-middle">
-            <tr>
-                <td>ID</td>
-                <td>{{ data.id }}</td>
-            </tr>
-            <tr>
-                <td>Имя</td>
-                <td>{{ data[0] }}</td>
-            </tr>
-            <tr>
-                <td>Дата создания</td>
-                <td>{{ created_at }}</td>
-            </tr>
-        </table>
+
+        <div class="container-lg mt-3">
+            <h1>Сайт: {{ data[0][1] }}</h1>
+            <div class="table-responsive">
+                <table table-responsive class="table table-bordered table-hover text-nowrap" data-test="urls">
+                    <tr>
+                        <td>ID</td>
+                        <td>{{ data[0][0] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Имя</td>
+                        <td>{{ data[0][1] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Дата создания</td>
+                        <td>{{ data[0][2] }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
     </main>
     {% endblock %}
 </body>

@@ -6,22 +6,31 @@
     <title>Page Analyzer</title>
 </head>
 <body>
-    <h1>Сайты</h1>
-    <table>
-        <tr>
-            <td>ID</td>
-            <td>Имя</td>
-            <td>Последняя проверка</td>
-            <td>Код ответа</td>
-        </tr>
-        {% for url in urls %}
-        <tr>
-            <td>{{ url.id }}</td>
-            <td>{{ url.name }}</td>
-            <td>???</td>
-            <td>???</td>
-        </tr>
-        {% endfor %}
-    </table>
+    {% extends "header_footer_template.html" %}
+    {% block main %}
+    <main class="flex-grow-1">
+        <div class="container-lg mt-3">
+            <h1>Сайты</h1>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover text-nowrap" data-test="urls">
+                    <tr class="fw-bolder">
+                        <td>ID</td>
+                        <td>Имя</td>    
+                        <td>Последняя проверка</td>
+                        <td>Код ответа</td>
+                    </tr>
+                    {% for url in urls %}
+                    <tr>
+                        <td>{{ url[0] }}</td>
+                        <td><a href="{{ url_for('get_url_info', id = url[0]) }}">{{ url[1] }}</a></td>
+                        <td>???</td>
+                        <td>???</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </main>
+    {% endblock %}
 </body>
 </html>
