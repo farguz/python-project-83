@@ -68,8 +68,8 @@ def post_url():
     data = request.form.to_dict()
     url = data['url']
     normalized_url = normalize_url(url)
-    correctness = validate_url(normalized_url)
     doubleness = check_is_not_double(normalized_url)
+    correctness = validate_url(normalized_url)
     if doubleness is not True:
         flash("Страница уже существует", "info")
         return redirect(url_for("get_url_info", id=doubleness))
@@ -78,7 +78,7 @@ def post_url():
         sql = """INSERT INTO urls (name, created_at) 
                 VALUES (%s, %s) RETURNING id;"""
         with conn.cursor() as curs:
-            curs.execute(sql, (url, datetime.now(), ))
+            curs.execute(sql, (normalized_url, datetime.now(), ))
             conn.commit()
             id = curs.fetchone()[0]
             conn.close()
@@ -92,6 +92,7 @@ def post_url():
 
 @app.route('/urls/<int:id>', methods=['GET'])
 def get_url_info(id):
+    data = request.form.to_dict()
     sql = 'SELECT id, name, created_at FROM urls WHERE urls.id = (%s);'
     conn = connect_database()
     with conn.cursor() as curs:
@@ -101,6 +102,19 @@ def get_url_info(id):
         conn.close()
     return render_template('url_id.html',
                            data=data)
+
+
+@app.route('/urls/<int:id>/checks', methods=['POST'])
+def post_url_check(id):
+    sql = 'INSERT INTO url_checks (url_id, created_at) VALUES (%s, %s);'
+    conn = connect_database()
+    with conn.cursor() as curs:
+        curs.execute(sql, (id, datetime.now(), ))
+        conn.commit()
+        # data = curs.fetchall()
+        conn.close()
+        flash("Страница успешно проверена", "success")
+    return render_template('url_checks.html')
 
 
 @app.route('/urls', methods=['GET'])
@@ -117,14 +131,28 @@ def urls_list():
 
 
 def create_table():
-    sql = '''
+    sql_url = '''
     CREATE TABLE urls (
         id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
         name VARCHAR(255) NOT NULL,
         created_at NOT NULL
     );'''
+
+    sql_checks = '''
+    CREATE TABLE IF NOT EXISTS url_checks  (
+        id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+        url_id BIGINT NOT NULL,
+        status_code INT,
+        h1 VARCHAR(255),
+        title VARCHAR(255),
+        description VARCHAR(255),
+        created_at TIMESTAMP NOT NULL
+    );'''
+
     conn = connect_database()
     with conn.cursor() as curs:
-        curs.execute(sql)
+        curs.execute(sql_url)
+        conn.commit()
+        curs.execute(sql_checks)
         conn.commit()
         conn.close()
