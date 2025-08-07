@@ -113,8 +113,12 @@ def post_url():
 
 @app.route('/urls/<int:id>', methods=['GET'])
 def get_url_info(id):
-    sql_url = 'SELECT id, name, created_at FROM urls WHERE urls.id = (%s);'
-    sql_select = 'SELECT id, created_at FROM url_checks WHERE url_id = (%s) ORDER BY id DESC;'
+    sql_url = """SELECT id, name, created_at
+                    FROM urls
+                    WHERE urls.id = (%s);"""
+    sql_select = """SELECT id, created_at
+                        FROM url_checks
+                        WHERE url_id = (%s) ORDER BY id DESC;"""
     conn = connect_database()
     with conn.cursor() as curs:
         curs.execute(sql_url, (id, ))
@@ -131,7 +135,8 @@ def get_url_info(id):
 
 @app.route('/urls/<int:id>/checks', methods=['POST'])
 def post_url_check(id):
-    sql_insert = 'INSERT INTO url_checks (url_id, created_at) VALUES (%s, %s) RETURNING (url_id);'
+    sql_insert = """INSERT INTO url_checks (url_id, created_at)
+                        VALUES (%s, %s) RETURNING (url_id);"""
     
     conn = connect_database()
     with conn.cursor() as curs:
