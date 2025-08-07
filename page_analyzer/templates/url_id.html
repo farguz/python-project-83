@@ -5,69 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page Analyzer</title>
 </head>
-<body>
+<body class="min-vh-100 d-flex flex-column">
     {% extends "header_footer_template.html" %}
     {% block main %}
     <main class="flex-grow-1">
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-info" role="alert">{{ message }}</div>
+                {% for category, message in messages %}
+                    {% if category == "error" %}
+                        <div class="alert alert-danger" role="alert">{{ message }}</div>
+                    {% elif category == "success" %}
+                        <div class="alert alert-success" role="alert">{{ message }}</div>
+                    {% elif category == "info" %}
+                        <div class="alert alert-info" role="alert">{{ message }}</div>
+                    {% endif %}
                 {% endfor %}
             {% endif %}
         {% endwith %}
 
         <div class="container-lg mt-3">
-            <h1>Сайт: {{ data[0][1] }}</h1>
+            <h1>Сайт: {{ data_url[0][1] }}</h1>
             <div class="table-responsive">
-                <table table-responsive class="table table-bordered table-hover text-nowrap" data-test="urls">
+                <table class="table table-bordered table-hover text-nowrap" data-test="urls">
                     <tr>
                         <td>ID</td>
-                        <td>{{ data[0][0] }}</td>
+                        <td>{{ data_url[0][0] }}</td>
                     </tr>
                     <tr>
                         <td>Имя</td>
-                        <td>{{ data[0][1] }}</td>
+                        <td>{{ data_url[0][1] }}</td>
                     </tr>
                     <tr>
                         <td>Дата создания</td>
-                        <td>{{ data[0][2] }}</td>
+                        <td>{{ data_url[0][2] }}</td>
                     </tr>
                 </table>
             </div>
         </div>
-
-        <div class="container-lg mt-3">
-            <h2 class="mt-5 mb-3">Проверки</h2>
-            <form action="{{ url_for('post_url_check', id = data[0][0]) }}" method="post">
-                <input type="submit" class="btn btn-primary" value="Запустить проверку">
-            </form>
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover text-nowrap" data-test="checks">
-                    <tr class="fw-bolder">
-                        <td>id</td>                        
-                        <td>status_code</td>
-                        <td>h1</td>
-                        <td>title</td>
-                        <td>description</td>
-                        <td>Дата создания</td>
-                    </tr>
-
-                    {% for url in urls %}
-                    <tr>
-                        <td>1</td>
-                        <td>2</td>
-                        <td>3</td>
-                        <td>4</td>
-                        <td>5</td>
-                        <td>6</td>
-                    </tr>
-                    {% endfor %}
-
-                </table>
-            </div>
+        <h2 class="mt-5 mb-3">Проверки</h2>
+        <form action="{{ url_for('post_url_check', id = data_url[0][0]) }}" method="post">
+            <input type="submit" class="btn btn-primary" value="Запустить проверку">
+        </form>
+        <div>
+            <table class="table table-bordered table-hover text-nowrap" data-test="checks">
+                <tr class="fw-bolder">
+                    <td>id</td>                        
+                    <td>status_code</td>
+                    <td>h1</td>
+                    <td>title</td>
+                    <td>description</td>
+                    <td>Дата создания</td>
+                </tr>
+                {% for check in data_checks %}
+                <tr>
+                    <td>{{ check[0] }}</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>4</td>
+                    <td>5</td>
+                    <td>{{ check[1] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
         </div>
+        
     </main>
     {% endblock %}
+    
 </body>
 </html>

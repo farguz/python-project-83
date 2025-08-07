@@ -63,6 +63,26 @@ def index():
                            url='')
 
 
+@app.route('/urls', methods=['GET'])
+def urls_list():
+    sql_table_checks = '''SELECT
+                            urls.id,
+                            urls.name,
+                            MAX(url_checks.created_at)
+                            FROM urls
+                            LEFT JOIN url_checks
+                            ON urls.id = url_checks.url_id
+                            GROUP BY urls.id;'''
+    conn = connect_database()
+    with conn.cursor() as curs:
+        curs.execute(sql_table_checks)
+        data = curs.fetchall()
+        conn.commit()
+        conn.close()
+    return render_template('urls.html',
+                           urls=data)
+
+
 @app.route('/', methods=['POST'])
 def post_url():
     data = request.form.to_dict()
@@ -92,61 +112,62 @@ def post_url():
 
 @app.route('/urls/<int:id>', methods=['GET'])
 def get_url_info(id):
-    data = request.form.to_dict()
-    sql = 'SELECT id, name, created_at FROM urls WHERE urls.id = (%s);'
+    sql_url = 'SELECT id, name, created_at FROM urls WHERE urls.id = (%s);'
+    sql_select = 'SELECT id, created_at FROM url_checks WHERE url_id = (%s) ORDER BY id DESC;'
     conn = connect_database()
     with conn.cursor() as curs:
-        curs.execute(sql, (id, ))
+        curs.execute(sql_url, (id, ))
         conn.commit()
-        data = curs.fetchall()
+        data_url = curs.fetchall()
+        curs.execute(sql_select, (id, ))
+        conn.commit()
+        data_checks = curs.fetchall()
         conn.close()
     return render_template('url_id.html',
-                           data=data)
+                           data_url=data_url,
+                           data_checks=data_checks)
 
 
-@app.route('/urls/<int:id>/checks', methods=['POST', 'GET'])
+@app.route('/urls/<int:id>/checks', methods=['POST'])
 def post_url_check(id):
-    sql_insert = 'INSERT INTO url_checks (url_id, created_at) VALUES (%s, %s) RETURNING (url_id, created_at);'
-    #sql_select = 'SELECT url_id, created_at FROM url_checks WHERE url_id = (%s)'
+    sql_insert = 'INSERT INTO url_checks (url_id, created_at) VALUES (%s, %s) RETURNING (url_id);'
+    
     conn = connect_database()
     with conn.cursor() as curs:
         curs.execute(sql_insert, (id, datetime.now(), ))
         conn.commit()
-        #curs.execute(sql_select, (id, ))
-        checks = curs.fetchall()
-        #conn.commit()
+        id = curs.fetchone()[0]
         conn.close()
         flash("Страница успешно проверена", "success")
-    return render_template('url_checks.html',
-                           checks=checks,
-                           url_id = id)
+    return redirect(url_for("get_url_info", id=id))
 
 
-@app.route('/urls', methods=['GET'])
-def urls_list():
-    sql = 'SELECT id, name FROM urls ORDER BY id DESC;'
+"""@app.route('/urls/<int:id>/checks', methods=['GET'])
+def show_checks_by_id(id):
+    sql_select = 'SELECT id, created_at FROM url_checks WHERE url_id = (%s) ORDER BY id DESC;'
     conn = connect_database()
     with conn.cursor() as curs:
-        curs.execute(sql)
-        data = curs.fetchall()
+        curs.execute(sql_select, (id, ))
         conn.commit()
+        checks = curs.fetchall()
         conn.close()
-    return render_template('urls.html',
-                           urls=data)
-
+    return render_template('url_checks.html',
+                           checks = checks,
+                           id = id)
+    return redirect(url_for("get_url_info", id=id))"""
 
 def create_table():
     sql_url = '''
-    CREATE TABLE urls (
+    CREATE TABLE IF NOT EXISTS urls (
         id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-        name VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL UNIQUE,
         created_at TIMESTAMP NOT NULL
     );'''
 
     sql_checks = '''
     CREATE TABLE IF NOT EXISTS url_checks  (
         id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-        url_id BIGINT NOT NULL,
+        url_id BIGINT REFERENCES urls (id) NOT NULL,
         status_code INT,
         h1 VARCHAR(255),
         title VARCHAR(255),
