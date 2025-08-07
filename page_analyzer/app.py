@@ -72,7 +72,8 @@ def urls_list():
                             FROM urls
                             LEFT JOIN url_checks
                             ON urls.id = url_checks.url_id
-                            GROUP BY urls.id;'''
+                            GROUP BY urls.id
+                            ORDER BY urls.id DESC;'''
     conn = connect_database()
     with conn.cursor() as curs:
         curs.execute(sql_table_checks)
@@ -141,20 +142,6 @@ def post_url_check(id):
         flash("Страница успешно проверена", "success")
     return redirect(url_for("get_url_info", id=id))
 
-
-"""@app.route('/urls/<int:id>/checks', methods=['GET'])
-def show_checks_by_id(id):
-    sql_select = 'SELECT id, created_at FROM url_checks WHERE url_id = (%s) ORDER BY id DESC;'
-    conn = connect_database()
-    with conn.cursor() as curs:
-        curs.execute(sql_select, (id, ))
-        conn.commit()
-        checks = curs.fetchall()
-        conn.close()
-    return render_template('url_checks.html',
-                           checks = checks,
-                           id = id)
-    return redirect(url_for("get_url_info", id=id))"""
 
 def create_table():
     sql_url = '''
