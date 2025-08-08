@@ -3,6 +3,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 
 import psycopg2
+import requests
 import validators
 from dotenv import load_dotenv
 from flask import (
@@ -68,11 +69,12 @@ def urls_list():
     sql_table_checks = '''SELECT
                             urls.id,
                             urls.name,
-                            MAX(url_checks.created_at)
+                            MAX(url_checks.created_at),
+                            url_checks.status_code
                             FROM urls
                             LEFT JOIN url_checks
                             ON urls.id = url_checks.url_id
-                            GROUP BY urls.id
+                            GROUP BY urls.id, url_checks.status_code
                             ORDER BY urls.id DESC;'''
     conn = connect_database()
     with conn.cursor() as curs:
@@ -116,7 +118,7 @@ def get_url_info(id):
     sql_url = """SELECT id, name, created_at
                     FROM urls
                     WHERE urls.id = (%s);"""
-    sql_select = """SELECT id, created_at
+    sql_select = """SELECT id, created_at, status_code
                         FROM url_checks
                         WHERE url_id = (%s) ORDER BY id DESC;"""
     conn = connect_database()
@@ -135,18 +137,39 @@ def get_url_info(id):
 
 @app.route('/urls/<int:id>/checks', methods=['POST'])
 def post_url_check(id):
-    sql_insert = """INSERT INTO url_checks (url_id, created_at)
-                        VALUES (%s, %s) RETURNING (url_id);"""
+    sql_select = """SELECT name FROM urls WHERE id = (%s);"""
+    sql_insert = """INSERT INTO url_checks (url_id, created_at, status_code)
+                        VALUES (%s, %s, %s) RETURNING (url_id);"""
     
     conn = connect_database()
     with conn.cursor() as curs:
-        curs.execute(sql_insert, (id, datetime.now(), ))
+        curs.execute(sql_select, (id, ))
+        conn.commit()
+        url = curs.fetchone()[0]
+        status_code = get_status_code(url)
+        if status_code is None:
+            return redirect(url_for("get_url_info", id=id))
+        curs.execute(sql_insert, (id, datetime.now(), status_code, ))
         conn.commit()
         id = curs.fetchone()[0]
         conn.close()
         flash("Страница успешно проверена", "success")
     return redirect(url_for("get_url_info", id=id))
 
+
+def get_status_code(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.status_code
+    except requests.exceptions.HTTPError:
+        pass
+    except requests.exceptions.ConnectionError:
+        pass
+    flash('Произошла ошибка при проверке', 'error')
+    return None
+    # return redirect(url_for("get_url_info", id=id))
+    
 
 def create_table():
     sql_url = '''
