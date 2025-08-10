@@ -1,14 +1,8 @@
 from datetime import datetime
 
-from app import app
-from flask import (
-    flash,
-    redirect,
-    render_template,
-    request,
-    url_for,
-)
-from utils import (
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+
+from .utils import (
     check_is_not_double,
     connect_database,
     get_html_tags,
@@ -17,14 +11,16 @@ from utils import (
     validate_url,
 )
 
+handlers_blueprint = Blueprint('handlers_blueprint', __name__)
 
-@app.route('/', methods=['GET'])
+
+@handlers_blueprint.route('/', methods=['GET'])
 def index():
     return render_template('index.html',
                            url='')
 
 
-@app.route('/urls', methods=['GET'])
+@handlers_blueprint.route('/urls', methods=['GET'])
 def urls_list():
     sql_table_checks = '''SELECT
                             urls.id,
@@ -46,7 +42,7 @@ def urls_list():
                            urls=data)
 
 
-@app.route('/', methods=['POST'])
+@handlers_blueprint.route('/', methods=['POST'])
 def post_url():
     data = request.form.to_dict()
     url = data['url']
@@ -54,8 +50,10 @@ def post_url():
     doubleness = check_is_not_double(normalized_url)
     correctness = validate_url(normalized_url)
     if doubleness is not True:
-        flash("Страница уже существует", "info")
-        return redirect(url_for("get_url_info", id=doubleness))
+        flash('Страница уже существует', 'info')
+        return redirect(
+            url_for('handlers_blueprint.get_url_info', id=doubleness)
+            )
     if correctness:
         conn = connect_database()
         sql = """INSERT INTO urls (name, created_at) 
@@ -65,15 +63,15 @@ def post_url():
             conn.commit()
             id = curs.fetchone()[0]
             conn.close()
-        flash("Страница успешно добавлена", "success")
-        return redirect(url_for("get_url_info", id=id))
+        flash('Страница успешно добавлена', 'success')
+        return redirect(url_for('handlers_blueprint.get_url_info', id=id))
     
-    flash("Некорректный URL", "error")
+    flash('Некорректный URL', 'error')
     return render_template('index.html',
                            url=url), 422
 
 
-@app.route('/urls/<int:id>', methods=['GET'])
+@handlers_blueprint.route('/urls/<int:id>', methods=['GET'])
 def get_url_info(id):
     sql_url = """SELECT id, name, created_at
                     FROM urls
@@ -95,7 +93,7 @@ def get_url_info(id):
                            data_checks=data_checks)
 
 
-@app.route('/urls/<int:id>/checks', methods=['POST'])
+@handlers_blueprint.route('/urls/<int:id>/checks', methods=['POST'])
 def post_url_check(id):
     sql_select = """SELECT name FROM urls WHERE id = (%s);"""
     sql_insert = """INSERT INTO url_checks (
@@ -111,14 +109,13 @@ def post_url_check(id):
     conn = connect_database()
     with conn.cursor() as curs:
         curs.execute(sql_select, (id, ))
-        conn.commit()
         url = curs.fetchone()[0]
         status_code = get_status_code(url)
         tags = get_html_tags(url)  # (h1, title, description, )
 
         if status_code is None:
             flash('Произошла ошибка при проверке', 'error')
-            return redirect(url_for("get_url_info", id=id))
+            return redirect(url_for('handlers_blueprint.get_url_info', id=id))
         
         curs.execute(sql_insert,
                      (
@@ -133,6 +130,6 @@ def post_url_check(id):
         conn.commit()
         id = curs.fetchone()[0]
         conn.close()
-        flash("Страница успешно проверена", "success")
-    return redirect(url_for("get_url_info", id=id))
+        flash('Страница успешно проверена', 'success')
+    return redirect(url_for('handlers_blueprint.get_url_info', id=id))
 

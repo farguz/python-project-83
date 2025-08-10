@@ -43,7 +43,7 @@
             </div>
         </div>
         <h2 class="mt-5 mb-3">Проверки</h2>
-        <form action="{{ url_for('post_url_check', id = data_url[0][0]) }}" method="post">
+        <form action="{{ url_for('handlers_blueprint.post_url_check', id = data_url[0][0]) }}" method="post">
             <input type="submit" class="btn btn-primary" value="Запустить проверку">
         </form>
         <div>
