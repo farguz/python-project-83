@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from urllib.parse import urlparse
 
+import bs4
 import psycopg2
 import requests
 import validators
@@ -118,7 +119,7 @@ def get_url_info(id):
     sql_url = """SELECT id, name, created_at
                     FROM urls
                     WHERE urls.id = (%s);"""
-    sql_select = """SELECT id, created_at, status_code
+    sql_select = """SELECT id, created_at, status_code, h1, title, description
                         FROM url_checks
                         WHERE url_id = (%s) ORDER BY id DESC;"""
     conn = connect_database()
@@ -138,8 +139,15 @@ def get_url_info(id):
 @app.route('/urls/<int:id>/checks', methods=['POST'])
 def post_url_check(id):
     sql_select = """SELECT name FROM urls WHERE id = (%s);"""
-    sql_insert = """INSERT INTO url_checks (url_id, created_at, status_code)
-                        VALUES (%s, %s, %s) RETURNING (url_id);"""
+    sql_insert = """INSERT INTO url_checks (
+                        url_id,
+                        created_at,
+                        status_code,
+                        h1,
+                        title,
+                        description
+                        )
+                    VALUES (%s, %s, %s, %s, %s, %s) RETURNING (url_id);"""
     
     conn = connect_database()
     with conn.cursor() as curs:
@@ -147,9 +155,22 @@ def post_url_check(id):
         conn.commit()
         url = curs.fetchone()[0]
         status_code = get_status_code(url)
+        tags = get_html_tags(url)  # (h1, title, description, )
+
         if status_code is None:
+            flash('Произошла ошибка при проверке', 'error')
             return redirect(url_for("get_url_info", id=id))
-        curs.execute(sql_insert, (id, datetime.now(), status_code, ))
+        
+        curs.execute(sql_insert,
+                     (
+                        id,
+                        datetime.now(),
+                        status_code,
+                        tags[0],
+                        tags[1],
+                        tags[2],
+                        )
+                    )
         conn.commit()
         id = curs.fetchone()[0]
         conn.close()
@@ -157,7 +178,7 @@ def post_url_check(id):
     return redirect(url_for("get_url_info", id=id))
 
 
-def get_status_code(url):
+def get_status_code(url: str) -> int | None:
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -166,11 +187,40 @@ def get_status_code(url):
         pass
     except requests.exceptions.ConnectionError:
         pass
-    flash('Произошла ошибка при проверке', 'error')
+    # flash('Произошла ошибка при проверке', 'error')
     return None
     # return redirect(url_for("get_url_info", id=id))
-    
 
+
+def get_html_tags(url: str) -> tuple:
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        html_content = response.content
+        html_object = bs4.BeautifulSoup(html_content, 'lxml')
+
+        try:
+            h1 = html_object.h1.string
+        except Exception:
+            h1 = ''
+        try:
+            title = html_object.title.string
+        except Exception:
+            title = ''
+        try:
+            description = html_object.find(
+                'meta', attrs={'name': 'description'}
+                ).get('content')
+        except Exception:
+            description = ''
+
+        return h1, title, description
+
+    except requests.exceptions.RequestException:
+        # flash('Произошла ошибка при проверке', 'error')
+        return None
+           
+    
 def create_table():
     sql_url = '''
     CREATE TABLE IF NOT EXISTS urls (
