@@ -43,7 +43,7 @@ def urls_list():
                            urls=data)
 
 
-@handlers_blueprint.route('/', methods=['POST'])
+@handlers_blueprint.route('/urls', methods=['POST'])
 def post_url():
     data = request.form.to_dict()
     url = data['url']
