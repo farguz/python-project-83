@@ -14,21 +14,25 @@
             <h1>Сайты</h1>
             <div class="table-responsive">
                 <table class="table table-bordered table-hover text-nowrap" data-test="urls">
-                    <tr class="fw-bolder">
-                        <td>ID</td>
-                        <td>Имя</td>    
-                        <td>Последняя проверка</td>
-                        <td>Код ответа</td>
-                    </tr>
+                    <thead>
+                        <tr class="fw-bolder">
+                            <td>ID</td>
+                            <td>Имя</td>    
+                            <td>Последняя проверка</td>
+                            <td>Код ответа</td>
+                        </tr>
+                    </thead>
 
-                    {% for url in urls %}
-                    <tr>
-                        <td>{{ url[0] }}</td>
-                        <td><a href="{{ url_for('handlers_blueprint.get_url_info', id = url[0]) }}">{{ url[1] }}</a></td>
-                        <td>{{ url[2] }}</td>
-                        <td>{{ url[3] }}</td>
-                    </tr>
-                    {% endfor %}
+                    <tbody>
+                        {% for url in urls %}
+                        <tr>
+                            <td>{{ url[0] }}</td>
+                            <td><a href="{{ url_for('handlers_blueprint.get_url_info', id = url[0]) }}">{{ url[1] }}</a></td>
+                            <td>{{ url[2] }}</td>
+                            <td>{{ url[3] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
 
                 </table>
             </div>

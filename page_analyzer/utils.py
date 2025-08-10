@@ -54,7 +54,7 @@ def get_status_code(url: str) -> int | None:
     # return redirect(url_for("get_url_info", id=id))
 
 
-def get_html_tags(url: str) -> tuple:
+def get_html_tags(url: str) -> tuple | None:
     try:
         response = requests.get(url)
         response.raise_for_status()

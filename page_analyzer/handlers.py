@@ -12,6 +12,7 @@ from .utils import (
 )
 
 handlers_blueprint = Blueprint('handlers_blueprint', __name__)
+get_url_info_link = 'handlers_blueprint.get_url_info'
 
 
 @handlers_blueprint.route('/', methods=['GET'])
@@ -52,7 +53,7 @@ def post_url():
     if doubleness is not True:
         flash('Страница уже существует', 'info')
         return redirect(
-            url_for('handlers_blueprint.get_url_info', id=doubleness)
+            url_for(get_url_info_link, id=doubleness)
             )
     if correctness:
         conn = connect_database()
@@ -64,7 +65,7 @@ def post_url():
             id = curs.fetchone()[0]
             conn.close()
         flash('Страница успешно добавлена', 'success')
-        return redirect(url_for('handlers_blueprint.get_url_info', id=id))
+        return redirect(url_for(get_url_info_link, id=id))
     
     flash('Некорректный URL', 'error')
     return render_template('index.html',
@@ -115,7 +116,7 @@ def post_url_check(id):
 
         if status_code is None:
             flash('Произошла ошибка при проверке', 'error')
-            return redirect(url_for('handlers_blueprint.get_url_info', id=id))
+            return redirect(url_for(get_url_info_link, id=id))
         
         curs.execute(sql_insert,
                      (
@@ -131,5 +132,5 @@ def post_url_check(id):
         id = curs.fetchone()[0]
         conn.close()
         flash('Страница успешно проверена', 'success')
-    return redirect(url_for('handlers_blueprint.get_url_info', id=id))
+    return redirect(url_for(get_url_info_link, id=id))
 

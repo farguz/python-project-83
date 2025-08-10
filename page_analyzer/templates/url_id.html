@@ -26,19 +26,22 @@
         <div class="container-lg mt-3">
             <h1>Сайт: {{ data_url[0][1] }}</h1>
             <div class="table-responsive">
-                <table class="table table-bordered table-hover text-nowrap" data-test="urls">
-                    <tr>
-                        <td>ID</td>
-                        <td>{{ data_url[0][0] }}</td>
-                    </tr>
-                    <tr>
-                        <td>Имя</td>
-                        <td>{{ data_url[0][1] }}</td>
-                    </tr>
-                    <tr>
-                        <td>Дата создания</td>
-                        <td>{{ data_url[0][2] }}</td>
-                    </tr>
+                <table class="table table-bordered table-hover text-nowrap" data-test="url">
+                    <thead></thead>
+                    <tbody>
+                        <tr>
+                            <td>ID</td>
+                            <td>{{ data_url[0][0] }}</td>
+                        </tr>
+                        <tr>
+                            <td>Имя</td>
+                            <td>{{ data_url[0][1] }}</td>
+                        </tr>
+                        <tr>
+                            <td>Дата создания</td>
+                            <td>{{ data_url[0][2] }}</td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -48,14 +51,18 @@
         </form>
         <div>
             <table class="table table-bordered table-hover text-nowrap" data-test="checks">
-                <tr class="fw-bolder">
-                    <td>id</td>                        
-                    <td>status_code</td>
-                    <td>h1</td>
-                    <td>title</td>
-                    <td>description</td>
-                    <td>Дата создания</td>
-                </tr>
+                <thead>
+                    <tr class="fw-bolder">
+                        <td>id</td>                        
+                        <td>status_code</td>
+                        <td>h1</td>
+                        <td>title</td>
+                        <td>description</td>
+                        <td>Дата создания</td>
+                    </tr>
+                </thead>
+
+                <tbody>
                 {% for check in data_checks %}
                 <tr>
                     <td>{{ check[0] }}</td>
@@ -66,6 +73,7 @@
                     <td>{{ check[1] }}</td>
                 </tr>
                 {% endfor %}
+                </tbody>
             </table>
         </div>
         
