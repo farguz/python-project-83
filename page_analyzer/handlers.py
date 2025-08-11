@@ -37,7 +37,6 @@ def urls_list():
     with conn.cursor() as curs:
         curs.execute(sql_table_checks)
         data = curs.fetchall()
-        conn.commit()
         conn.close()
     return render_template('urls.html',
                            urls=data)
@@ -83,10 +82,8 @@ def get_url_info(id):
     conn = connect_database()
     with conn.cursor() as curs:
         curs.execute(sql_url, (id, ))
-        conn.commit()
         data_url = curs.fetchall()
         curs.execute(sql_select, (id, ))
-        conn.commit()
         data_checks = curs.fetchall()
         conn.close()
     return render_template('url_id.html',
