@@ -2,14 +2,17 @@ import os
 from urllib.parse import urlparse
 
 import bs4
-import psycopg2
+import psycopg
 import requests
 import validators
 
 
 def connect_database():
     DATABASE_URL = os.getenv('DATABASE_URL')
-    conn = psycopg2.connect(DATABASE_URL)
+    if not DATABASE_URL:
+        raise ValueError("no such var in env")
+    
+    conn = psycopg.connect(DATABASE_URL)
     return conn
 
 
