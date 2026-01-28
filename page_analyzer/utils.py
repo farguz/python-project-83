@@ -43,7 +43,7 @@ def check_is_not_double(url: str) -> bool | int:
 
 def get_status_code(url: str) -> int | None:
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
         response.raise_for_status()
         return response.status_code
     except requests.exceptions.HTTPError:
@@ -56,7 +56,7 @@ def get_status_code(url: str) -> int | None:
 
 def get_html_tags(url: str) -> tuple | None:
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
         response.raise_for_status()
         html_content = response.content
         html_object = bs4.BeautifulSoup(html_content, 'lxml')
