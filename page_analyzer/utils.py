@@ -2,24 +2,29 @@ import os
 from urllib.parse import urlparse
 
 import bs4
-import psycopg
 import requests
 import validators
+from dotenv import load_dotenv
+from psycopg_pool import ConnectionPool
 
+load_dotenv()
+DATABASE_URL = os.getenv('DATABASE_URL')
 
-def connect_database():
-    DATABASE_URL = os.getenv('DATABASE_URL')
-    if not DATABASE_URL:
-        raise ValueError("no such var in env")
-    
-    conn = psycopg.connect(DATABASE_URL)
-    return conn
+if not DATABASE_URL:
+    raise ValueError("no such var in env")
+
+pool = ConnectionPool(
+    DATABASE_URL,
+    min_size=1,
+    max_size=10,
+    timeout=10,
+)
 
 
 def validate_url(url: str) -> bool:
     correct_url = validators.url(url)
     correct_length = True if len(url) < 255 else False
-    # correct_length = validators.length(url, 0, 255) ПОЧЕМУ НЕ РАБОТАЕТ???
+
     if correct_url is True and correct_length:
         return True
     return False
@@ -32,16 +37,15 @@ def normalize_url(url: str) -> str:
 
 
 def check_is_not_double(url: str) -> bool | int:
-    conn = connect_database()
-    sql = "SELECT * FROM urls WHERE name = (%s);"
-    with conn.cursor() as curs:
-        curs.execute(sql, (url, ))
-        conn.commit()
-        id = curs.fetchone()
-        conn.close()
-        if id is None:
-            return True
-        return id[0]
+    sql = "SELECT id FROM urls WHERE name = (%s);"
+
+    with pool.connection() as conn:
+        with conn.cursor() as curs:
+            curs.execute(sql, (url, ))
+            id = curs.fetchone()
+            if id is None:
+                return True
+            return id[0]
 
 
 def get_status_code(url: str) -> int | None:
@@ -54,7 +58,6 @@ def get_status_code(url: str) -> int | None:
     except requests.exceptions.ConnectionError:
         pass
     return None
-    # return redirect(url_for("get_url_info", id=id))
 
 
 def get_html_tags(url: str) -> tuple | None:
@@ -104,11 +107,8 @@ def create_table():
         created_at TIMESTAMP NOT NULL
     );'''
 
-    conn = connect_database()
-    with conn.cursor() as curs:
-        curs.execute(sql_url)
+    with pool.connection() as conn:
+        with conn.cursor() as curs:
+            curs.execute(sql_url)
+            curs.execute(sql_checks)
         conn.commit()
-        curs.execute(sql_checks)
-        conn.commit()
-        conn.close()
-
