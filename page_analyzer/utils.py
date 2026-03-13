@@ -23,9 +23,9 @@ pool = ConnectionPool(
 
 def validate_url(url: str) -> bool:
     correct_url = validators.url(url)
-    correct_length = True if len(url) < 255 else False
+    correct_length = len(url) < 255
 
-    if correct_url is True and correct_length:
+    if correct_url and correct_length:
         return True
     return False
 
@@ -42,10 +42,10 @@ def check_is_not_double(url: str) -> bool | int:
     with pool.connection() as conn:
         with conn.cursor() as curs:
             curs.execute(sql, (url, ))
-            id = curs.fetchone()
-            if id is None:
+            row = curs.fetchone()
+            if row is None:
                 return True
-            return id[0]
+            return row[0]
 
 
 def get_status_code(url: str) -> int | None:
