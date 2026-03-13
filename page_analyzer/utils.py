@@ -48,44 +48,27 @@ def check_is_not_double(url: str) -> bool | int:
             return row[0]
 
 
-def get_status_code(url: str) -> int | None:
+def get_html_data(url: str) -> tuple | None:
     try:
         response = requests.get(url, timeout=5)
         response.raise_for_status()
-        return response.status_code
-    except requests.exceptions.HTTPError:
-        pass
-    except requests.exceptions.ConnectionError:
-        pass
-    return None
 
-
-def get_html_tags(url: str) -> tuple | None:
-    try:
-        response = requests.get(url, timeout=5)
-        response.raise_for_status()
         html_content = response.content
         html_object = bs4.BeautifulSoup(html_content, 'lxml')
-
-        try:
-            h1 = html_object.h1.string
-        except Exception:
-            h1 = ''
-        try:
-            title = html_object.title.string
-        except Exception:
-            title = ''
-        try:
-            description = html_object.find(
+        
+        h1 = html_object.h1.string if html_object.h1 else ''
+        title = html_object.title.string if html_object.title else ''
+        description = html_object.find(
                 'meta', attrs={'name': 'description'}
-                ).get('content')
-        except Exception:
-            description = ''
+                ).get('content') 
+        description = description if description else ''
+        status_code = response.status_code
 
-        return h1, title, description
-
-    except requests.exceptions.RequestException:
+    except Exception as e:
+        print(f"Logging error: {e}")
         return None
+
+    return h1[:255], title[:255], description[:255], status_code
            
     
 def create_table():

@@ -4,8 +4,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from .utils import (
     check_is_not_double,
-    get_html_tags,
-    get_status_code,
+    get_html_data,
     normalize_url,
     pool,
     validate_url,
@@ -107,10 +106,12 @@ def post_url_check(id):
         with conn.cursor() as curs:
             curs.execute(sql_select, (id, ))
             url = curs.fetchone()[0]
-            status_code = get_status_code(url)
-            tags = get_html_tags(url)  # (h1, title, description, )
+            html_data = get_html_data(url)
+            if html_data:
+                status_code = html_data[-1]
+                tags = html_data[:-1]  # (h1, title, description, )
 
-            if status_code is None:
+            else:
                 flash('Произошла ошибка при проверке', 'error')
                 return redirect(url_for(get_url_info_link, id=id))
         
