@@ -1,24 +1,10 @@
-import os
 from urllib.parse import urlparse
 
 import bs4
 import requests
 import validators
-from dotenv import load_dotenv
-from psycopg_pool import ConnectionPool
 
-load_dotenv()
-DATABASE_URL = os.getenv('DATABASE_URL')
-
-if not DATABASE_URL:
-    raise ValueError("no such var in env")
-
-pool = ConnectionPool(
-    DATABASE_URL,
-    min_size=1,
-    max_size=10,
-    timeout=10,
-)
+from .db import pool
 
 
 def validate_url(url: str) -> bool:

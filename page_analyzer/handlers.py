@@ -2,11 +2,11 @@ from datetime import datetime
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
+from .db import pool
 from .utils import (
     check_is_not_double,
     get_html_data,
     normalize_url,
-    pool,
     validate_url,
 )
 
@@ -106,15 +106,17 @@ def post_url_check(id):
         with conn.cursor() as curs:
             curs.execute(sql_select, (id, ))
             url = curs.fetchone()[0]
-            html_data = get_html_data(url)
-            if html_data:
-                status_code = html_data[-1]
-                tags = html_data[:-1]  # (h1, title, description, )
+    html_data = get_html_data(url)
+    if html_data:
+        status_code = html_data[-1]
+        tags = html_data[:-1]  # (h1, title, description, )
 
-            else:
-                flash('Произошла ошибка при проверке', 'error')
-                return redirect(url_for(get_url_info_link, id=id))
+    else:
+        flash('Произошла ошибка при проверке', 'error')
+        return redirect(url_for(get_url_info_link, id=id))
         
+    with pool.connection() as conn:
+        with conn.cursor() as curs:
             curs.execute(sql_insert,
                         (
                             id,
@@ -127,5 +129,5 @@ def post_url_check(id):
                         )
             id = curs.fetchone()[0]
             conn.commit()
-        flash('Страница успешно проверена', 'success')
+    flash('Страница успешно проверена', 'success')
     return redirect(url_for(get_url_info_link, id=id))
