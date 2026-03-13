@@ -56,12 +56,14 @@ def get_html_data(url: str) -> tuple | None:
         html_content = response.content
         html_object = bs4.BeautifulSoup(html_content, 'lxml')
         
-        h1 = html_object.h1.string if html_object.h1 else ''
-        title = html_object.title.string if html_object.title else ''
-        description = html_object.find(
+        h1 = html_object.h1.get_text(strip=True) if html_object.h1 else ''
+        title = html_object.title.get_text(
+            strip=True
+            ) if html_object.title else ''
+        desc_tag = html_object.find(
                 'meta', attrs={'name': 'description'}
-                ).get('content') 
-        description = description if description else ''
+                )
+        description = desc_tag.get('content', '') if desc_tag else ''
         status_code = response.status_code
 
     except Exception as e:
