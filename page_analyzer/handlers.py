@@ -60,10 +60,10 @@ def post_url():
         with pool.connection() as conn:
             with conn.cursor() as curs:
                 curs.execute(sql, (normalized_url, datetime.now(), ))
-                id = curs.fetchone()[0]
+                _id = curs.fetchone()[0]
                 conn.commit()
         flash('Страница успешно добавлена', 'success')
-        return redirect(url_for(get_url_info_link, id=id))
+        return redirect(url_for(get_url_info_link, id=_id))
     
     flash('Некорректный URL', 'error')
     return render_template('index.html',
@@ -100,7 +100,7 @@ def post_url_check(id):
                         title,
                         description
                         )
-                    VALUES (%s, %s, %s, %s, %s, %s) RETURNING (url_id);"""
+                    VALUES (%s, %s, %s, %s, %s, %s);"""
     
     with pool.connection() as conn:
         with conn.cursor() as curs:
@@ -127,7 +127,6 @@ def post_url_check(id):
                             tags[2],
                             )
                         )
-            id = curs.fetchone()[0]
             conn.commit()
     flash('Страница успешно проверена', 'success')
     return redirect(url_for(get_url_info_link, id=id))
